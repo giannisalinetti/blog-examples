@@ -9,7 +9,6 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
 )
 
@@ -19,45 +18,45 @@ const (
 
 // printWelcome prints a simple welcome message
 func printWelcome(w http.ResponseWriter, r *http.Request) {
-	log.Println("Entering welcome funcion")
+	log.Println("printWelcome INFO - Entering welcome funcion")
 	fmt.Fprintf(w, "Hello visitor! You are connecting from IP/Port %s with User-Agent %s\n", r.RemoteAddr, r.UserAgent())
-	log.Println("Leaving welcome function")
+	log.Println("printWelcome INFO - Leaving welcome function")
 }
 
 // printHelp prints out a simple help to demonstrate different handlers
 func printHelp(w http.ResponseWriter, r *http.Request) {
-	log.Println("Entering help funcion")
+	log.Println("printHelp INFO - Entering help funcion")
 	fmt.Fprintf(w, "Usage: http://<host>:8000/welcome\n")
-	log.Println("Leaving help function")
+	log.Println("printHelp INFO - Leaving help function")
 }
 
 // userAgentCheck avoids requests from curl User-Agent
 func userAgentCheck(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	log.Println("Begin User-Agent check")
+	log.Println("userAgentCheck INFO - Begin User-Agent check")
 	userAgent := r.UserAgent() // The User-Agent of the HTTP Request
 	re, err := regexp.Compile(rePattern)
 	if err != nil {
-		log.Println("Error compiling regexp pattern")
+		log.Println("userAgentCheck ERR - failed to compile regexp pattern")
 		panic(1)
 	}
 	if re.MatchString(userAgent) {
-		log.Printf("Refused connection to client with User-Agent %s", userAgent)
+		log.Printf("userAgentCheck ERR - Refused connection to client with User-Agent %s", userAgent)
 		fmt.Fprintf(w, "Error: cannot accept connections from %s User-Agent.\n", userAgent)
 		return
 	}
-	log.Println("Completed User-Agent check")
+	log.Println("printAgentCheck INFO - Completed User-Agent check")
 	next(w, r)
 }
 
 // methodCheck verifies that the HTTP Request method is GET
 func methodCheck(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	log.Println("Begin HTTP Request Method check")
+	log.Println("methodCheck INFO - Begin HTTP Request Method check")
 	if r.Method != "GET" {
-		fmt.Fprintf(w, "Error: wrong http method\n")
-		log.Println("Error during HTTP Method check")
+		fmt.Fprintf(w, "Error: %s method is forbidden in this context\n", r.Method)
+		log.Printf("methodCheck ERR - Forbidden %s method", r.Method)
 		return // We don't need to go through middleware2
 	}
-	log.Println("Completed HTTP Request method check")
+	log.Println("methodCheck INFO - Completed HTTP Request method check")
 	next(w, r)
 }
 
@@ -81,11 +80,11 @@ func main() {
 	portBinding := fmt.Sprintf(":%s", strconv.Itoa(*portFlag))
 
 	// Create new mux router
-	r := mux.NewRouter()
+	r := http.NewServeMux()
 
-	// Register new router and associated handler functions
-	r.HandleFunc("/welcome", printWelcome).Methods("GET")
-	r.HandleFunc("/help", printHelp).Methods("GET")
+	// Register new routes and associated handler functions
+	r.HandleFunc("/welcome", printWelcome)
+	r.HandleFunc("/help", printHelp)
 
 	// Define a classic Negroni environment with a standard middleware stack:
 	// Recovery - Panic Recovery Middleware
