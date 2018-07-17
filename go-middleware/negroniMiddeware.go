@@ -40,8 +40,9 @@ func userAgentCheck(w http.ResponseWriter, r *http.Request, next http.HandlerFun
 		panic(1)
 	}
 	if re.MatchString(userAgent) {
-		log.Printf("userAgentCheck ERR - Refused connection to client with User-Agent %s", userAgent)
+		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "Error: cannot accept connections from %s User-Agent.\n", userAgent)
+		log.Printf("userAgentCheck ERR - Refused connection to client with User-Agent %s", userAgent)
 		return
 	}
 	log.Println("printAgentCheck INFO - Completed User-Agent check")
@@ -52,6 +53,7 @@ func userAgentCheck(w http.ResponseWriter, r *http.Request, next http.HandlerFun
 func methodCheck(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	log.Println("methodCheck INFO - Begin HTTP Request Method check")
 	if r.Method != "GET" {
+		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "Error: %s method is forbidden in this context\n", r.Method)
 		log.Printf("methodCheck ERR - Forbidden %s method", r.Method)
 		return // We don't need to go through middleware2
