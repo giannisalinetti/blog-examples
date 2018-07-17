@@ -4,17 +4,26 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func printHello(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello World!\n")
+}
+
+func printDate(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Current date: %s\n", time.Now().String())
 }
 
 func main() {
 	// Define a custom multiplexer
 	r := http.NewServeMux()
 
-	// HandleFunc is now a method of the new multiplexer
-	r.HandleFunc("/", handler)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	// Register printHello function
+	r.HandleFunc("/hello", printHello)
+	// Register printDate function
+	r.HandleFunc("/date", printDate)
+
+	// Use r as the default handler
+	log.Fatal(http.ListenAndServe(":8080", r))
 }
