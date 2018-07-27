@@ -12,7 +12,7 @@ func printHello(w http.ResponseWriter, r *http.Request) {
 }
 
 func printDate(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Current date: %s\n", time.Now().String())
+	fmt.Fprintf(w, "Current date: %s\n", time.Now().Format(time.RFC3339))
 }
 
 func main() {
